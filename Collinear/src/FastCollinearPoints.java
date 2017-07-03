@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -38,10 +39,32 @@ public class FastCollinearPoints {
   private void findSegments() {
     this.lineSegments = new LinkedList<>();
 
+    List<Point> mins = new LinkedList<>();
+    Point minP = null;
+    Arrays.sort(this.points);
     for (int i = 0; i < this.points.length - 3; i++) {
       Point[] sortesPoints = Arrays.copyOfRange(points, i + 1, points.length);
+
       Arrays.sort(sortesPoints, this.points[i].slopeOrder());
+
       for (int k = 0; k < sortesPoints.length - 2;) {
+        boolean exists = false;
+        Iterator<Point> minIterator = mins.iterator();
+
+        while (minIterator.hasNext()) {
+          Point min = minIterator.next();
+
+          if (min.slopeOrder().compare(sortesPoints[k], points[i]) == 0) {
+            exists = true;
+            break;
+          }
+
+        }
+//        if (exists) {
+//          k++;
+//          continue;
+//        }
+
         int j = k + 1;
         while (j < sortesPoints.length && points[i].slopeOrder().compare(sortesPoints[k], sortesPoints[j]) == 0) {
           j++;
@@ -65,8 +88,13 @@ public class FastCollinearPoints {
         }
 
         LineSegment segment = new LineSegment(min, max);
+
         this.lineSegments.add(segment);
+        mins.add(min);
+        minP = min;
+        
         k = j;
+
       }
 
     }
