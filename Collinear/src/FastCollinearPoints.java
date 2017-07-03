@@ -40,7 +40,6 @@ public class FastCollinearPoints {
     this.lineSegments = new LinkedList<>();
 
     List<Point> mins = new LinkedList<>();
-    Point minP = null;
     Arrays.sort(this.points);
     for (int i = 0; i < this.points.length - 3; i++) {
       Point[] sortesPoints = Arrays.copyOfRange(points, i + 1, points.length);
@@ -60,10 +59,10 @@ public class FastCollinearPoints {
           }
 
         }
-//        if (exists) {
-//          k++;
-//          continue;
-//        }
+        if (exists) {
+          k++;
+          continue;
+        }
 
         int j = k + 1;
         while (j < sortesPoints.length && points[i].slopeOrder().compare(sortesPoints[k], sortesPoints[j]) == 0) {
@@ -92,7 +91,7 @@ public class FastCollinearPoints {
         this.lineSegments.add(segment);
         mins.add(min);
         minP = min;
-        
+
         k = j;
 
       }
