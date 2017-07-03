@@ -34,41 +34,42 @@ public class FastCollinearPoints {
       throw new IllegalArgumentException("Argument cannot be null");
     }
   }
-  private void findSegments () {
-	  this.lineSegments = new LinkedList<>();
 
-	    for (int i = 0; i < this.points.length - 3; i++) {
-	      Point[] sortesPoints = Arrays.copyOfRange(points, i + 1, points.length);
-	      Arrays.sort(sortesPoints, this.points[i].slopeOrder());
-	      for (int k = 0; k < sortesPoints.length - 2;) {
-	        int j = k + 1;
-	        while (j < sortesPoints.length && points[i].slopeOrder().compare(sortesPoints[k], sortesPoints[j]) == 0) {
-	          j++;
-	        }
+  private void findSegments() {
+    this.lineSegments = new LinkedList<>();
 
-	        if (j - k < 3) {
-	          k = j;
-	          continue;
-	        }
+    for (int i = 0; i < this.points.length - 3; i++) {
+      Point[] sortesPoints = Arrays.copyOfRange(points, i + 1, points.length);
+      Arrays.sort(sortesPoints, this.points[i].slopeOrder());
+      for (int k = 0; k < sortesPoints.length - 2;) {
+        int j = k + 1;
+        while (j < sortesPoints.length && points[i].slopeOrder().compare(sortesPoints[k], sortesPoints[j]) == 0) {
+          j++;
+        }
 
-	        Point min = this.points[i];
-	        Point max = this.points[i];
-	        for (int m = k; m < j; m++) {
-	          if (min.compareTo(sortesPoints[m]) > 0) {
-	            min = sortesPoints[m];
-	          }
+        if (j - k < 3) {
+          k = j;
+          continue;
+        }
 
-	          if (max.compareTo(sortesPoints[m]) < 0) {
-	            max = sortesPoints[m];
-	          }
-	        }
+        Point min = this.points[i];
+        Point max = this.points[i];
+        for (int m = k; m < j; m++) {
+          if (min.compareTo(sortesPoints[m]) > 0) {
+            min = sortesPoints[m];
+          }
 
-	        LineSegment segment = new LineSegment(min, max);
-	        this.lineSegments.add(segment);
-	        k = j;
-	      }
+          if (max.compareTo(sortesPoints[m]) < 0) {
+            max = sortesPoints[m];
+          }
+        }
 
-	    }
+        LineSegment segment = new LineSegment(min, max);
+        this.lineSegments.add(segment);
+        k = j;
+      }
+
+    }
   }
 
   /**

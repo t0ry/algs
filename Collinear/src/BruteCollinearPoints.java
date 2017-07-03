@@ -39,56 +39,56 @@ public class BruteCollinearPoints {
       throw new IllegalArgumentException("Argument cannot be null");
     }
   }
-  
+
   private void findSegments() {
-	  this.lineSegments = new LinkedList<>();
+    this.lineSegments = new LinkedList<>();
 
-	    for (int i = 0; i < this.points.length - 3; i++) {
-	      for (int j = i + 1; j < this.points.length - 2; j++) {
-	        for (int k = j + 1; k < this.points.length - 1; k++) {
-	          if (points[i].slopeOrder().compare(this.points[j], this.points[k]) == 0) {
-	            boolean fourth = false;
-	            int el = k + 1;
+    for (int i = 0; i < this.points.length - 3; i++) {
+      for (int j = i + 1; j < this.points.length - 2; j++) {
+        for (int k = j + 1; k < this.points.length - 1; k++) {
+          if (points[i].slopeOrder().compare(this.points[j], this.points[k]) == 0) {
+            boolean fourth = false;
+            int el = k + 1;
 
-	            Point min = null;
-	            Point max = null;
-	            while (el < this.points.length) {
-	              if (points[i].slopeOrder().compare(this.points[j], this.points[el]) == 0) {
+            Point min = null;
+            Point max = null;
+            while (el < this.points.length) {
+              if (points[i].slopeOrder().compare(this.points[j], this.points[el]) == 0) {
 
-	                min = this.points[i];
-	                max = this.points[i];
-	                if (min.compareTo(this.points[j]) > 0) {
-	                  min = this.points[j];
-	                }
-	                if (max.compareTo(this.points[j]) < 0) {
-	                  max = this.points[j];
-	                }
-	                if (min.compareTo(this.points[k]) > 0) {
-	                  min = this.points[k];
-	                }
-	                if (max.compareTo(this.points[k]) < 0) {
-	                  max = this.points[k];
-	                }
+                min = this.points[i];
+                max = this.points[i];
+                if (min.compareTo(this.points[j]) > 0) {
+                  min = this.points[j];
+                }
+                if (max.compareTo(this.points[j]) < 0) {
+                  max = this.points[j];
+                }
+                if (min.compareTo(this.points[k]) > 0) {
+                  min = this.points[k];
+                }
+                if (max.compareTo(this.points[k]) < 0) {
+                  max = this.points[k];
+                }
 
-	                if (min.compareTo(this.points[el]) > 0) {
-	                  min = this.points[el];
-	                }
-	                if (max.compareTo(this.points[el]) < 0) {
-	                  max = this.points[el];
-	                }
-	                fourth = true;
-	              }
-	              el++;
-	            }
-	            if (fourth) {
-	              LineSegment segment = new LineSegment(min, max);
-	              this.lineSegments.add(segment);
+                if (min.compareTo(this.points[el]) > 0) {
+                  min = this.points[el];
+                }
+                if (max.compareTo(this.points[el]) < 0) {
+                  max = this.points[el];
+                }
+                fourth = true;
+              }
+              el++;
+            }
+            if (fourth) {
+              LineSegment segment = new LineSegment(min, max);
+              this.lineSegments.add(segment);
 
-	            }
-	          }
-	        }
-	      }
-	    }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
