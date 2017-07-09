@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,10 +7,9 @@ import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.StdOut;
 
 public final class Solver {
-  private final List<Board> solution = new LinkedList<>();
-  private final List<Board> twinSolution = new LinkedList<>();
-  private int moves = 0;
+  private List<Board> solution = null;
   private boolean solvable = false;
+  private SearchNode goalSearchNode;
 
   /**
    * find a solution to the initial board (using the A* algorithm)
@@ -22,90 +20,58 @@ public final class Solver {
     if (initial == null) {
       throw new IllegalArgumentException("Initial board can't be null");
     }
-    this.solution.add(initial);
 
     if (initial.isGoal()) {
+      this.goalSearchNode = new SearchNode(initial);
       this.solvable = true;
       return;
     }
 
-    this.twinSolution.add(initial.twin());
     if (initial.twin().isGoal()) {
       setUnsolved();
       return;
     }
 
-    final MinPQ<Board> pq = new MinPQ<>();
-    final MinPQ<Board> twinPQ = new MinPQ<>();
-
-    pq.insert(initial);
-    twinPQ.insert(initial.twin());
-    trySolve(pq, twinPQ);
+    trySolve(initial);
   }
 
-  private void trySolve(MinPQ<Board> pq, MinPQ<Board> twinPQ) {
+  private void trySolve(Board initial) {
+    final MinPQ<SearchNode> pq = new MinPQ<>();
+    final MinPQ<SearchNode> twinPQ = new MinPQ<>();
 
-    Board searchNode = moveBlock(pq, solution, null);
- //   Board twinSearchNode = moveBlock(twinPQ, twinSolution, null);
-    System.out.println(searchNode);
+    pq.insert(new SearchNode(initial));
+    twinPQ.insert(new SearchNode(initial.twin()));
 
-
-    while (!(searchNode.isGoal() /*|| twinSearchNode.isGoal()*/)) {
-      this.moves++;
-      searchNode = moveBlock(pq, solution, searchNode);
-      //twinSearchNode = moveBlock(twinPQ, twinSolution, twinSearchNode);
-      System.out.println(searchNode);
-
-      try {
-        System.in.read();
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
-    if (searchNode.isGoal()) {
-      this.solvable = true;
-      return;
-    }
-//    } else if (twinSearchNode.isGoal()) {
-//      setUnsolved();
-//      return;
-//    }
-  }
-
-  private Board moveBlock(MinPQ<Board> workingQueue, List<Board> workingSolution, Board previous) {
-    Board searchNode = workingQueue.delMin();
+    SearchNode searchNode = moveBlock(pq);
+    SearchNode twinSearchNode = moveBlock(twinPQ);
     
-    if (searchNode.isGoal()) {
+    while (!(searchNode.board.isGoal() || twinSearchNode.board.isGoal())) {
+      searchNode = moveBlock(pq);
+      twinSearchNode = moveBlock(twinPQ);
+    }
+    if (searchNode.board.isGoal()) {
+      this.goalSearchNode = searchNode;
+      this.solvable = true;
+
+    } else if (twinSearchNode.board.isGoal()) {
+      this.setUnsolved();
+    }
+  }
+
+  private SearchNode moveBlock(MinPQ<SearchNode> workingQueue) {
+    SearchNode searchNode = workingQueue.delMin();
+    if (searchNode.board.isGoal()) {
       return searchNode;
     }
 
-    Iterator<Board> iterator = searchNode.neighbors().iterator();
-
-    Board prefferedNeighbor = null;
+    Iterator<Board> iterator = searchNode.board.neighbors().iterator();
     while (iterator.hasNext()) {
       Board neighbor = iterator.next();
 
-      // check for previous
-      if (neighbor.equals(previous)) {
-        continue;
-      }
-
-      if (prefferedNeighbor == null) {
-        prefferedNeighbor = neighbor;
-        continue;
-      }
-
-      int currentPriority = this.moves + neighbor.manhattan();
-      int minPriority = this.moves + prefferedNeighbor.manhattan();
-      System.out.println(neighbor);
-      System.out.println(currentPriority);
-      if (currentPriority < minPriority) {
-        prefferedNeighbor = neighbor;
+      if (searchNode.isNeighborAccptable(neighbor)) {
+        workingQueue.insert(new SearchNode(neighbor, searchNode));
       }
     }
-    workingQueue.insert(prefferedNeighbor);
-    workingSolution.add(prefferedNeighbor);
 
     return searchNode;
 
@@ -113,8 +79,47 @@ public final class Solver {
 
   private void setUnsolved() {
     this.solvable = false;
-    this.solution.clear();
-    this.moves = -1;
+    this.solution = null;
+    this.goalSearchNode = null;
+
+  }
+
+  private class SearchNode implements Comparable<SearchNode> {
+    private final Board board;
+    private SearchNode previous;
+    private int moves;
+
+    public SearchNode(Board board, SearchNode previous) {
+      this.board = board;
+      this.previous = previous;
+      this.moves = this.previous.moves + 1;
+
+    }
+
+    public SearchNode(Board board) {
+      this.board = board;
+
+    }
+
+    public boolean isNeighborAccptable(Board neighbor) {
+      if (this.previous == null) {
+        return true;
+      }
+
+      return !this.previous.board.equals(neighbor);
+    }
+
+    @Override
+    public int compareTo(SearchNode searchNodeToCompare) {
+      if (this.board.manhattan() + this.moves < searchNodeToCompare.board.manhattan() + searchNodeToCompare.moves) {
+        return -1;
+      }
+      if (this.board.manhattan() + this.moves > searchNodeToCompare.board.manhattan() + searchNodeToCompare.moves) {
+        return 1;
+      }
+      return 0;
+    }
+
   }
 
   /**
@@ -132,7 +137,10 @@ public final class Solver {
    * @return
    */
   public int moves() {
-    return this.moves;
+    if (!isSolvable()) {
+      return -1;
+    }
+    return this.goalSearchNode.moves;
   }
 
   /**
@@ -141,6 +149,22 @@ public final class Solver {
    * @return
    */
   public Iterable<Board> solution() {
+    if (!isSolvable()) {
+      return null;
+    }
+
+    if (this.solution == null) {
+      this.solution = new LinkedList<>();
+
+      SearchNode currentBW = this.goalSearchNode;
+      this.solution.add(currentBW.board);
+
+      while (currentBW.previous != null) {
+        currentBW = currentBW.previous;
+        this.solution.add(0, currentBW.board);
+      }
+    }
+
     List<Board> toReturn = new LinkedList<>(this.solution);
     return toReturn;
   }

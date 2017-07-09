@@ -56,10 +56,9 @@ public final class Board {
 
     newBlocks[blankRow][blankCol] = newBlocks[fromRow][fromCol];
     newBlocks[fromRow][fromCol] = 0;
-   
-    Board newBoard = new Board(newBlocks);
-    this.neighboars.add(newBoard);
-   
+
+    this.neighboars.add(new Board(newBlocks));
+
   }
 
   /**
@@ -115,7 +114,7 @@ public final class Board {
 
       int verticalDistance = Math.abs(iRow - goalRow);
       int horizintalDistance = Math.abs(iCol - goalCol);
-      
+
       this.manhattan += verticalDistance + horizintalDistance;
     }
 
@@ -216,7 +215,7 @@ public final class Board {
     }
     blankRow = this.getRow(i);
     blankCol = this.getCol(i);
-    
+
     this.embarkNeighbor(blankRow - 1, blankCol, blankRow, blankCol);
     this.embarkNeighbor(blankRow, blankCol - 1, blankRow, blankCol);
     this.embarkNeighbor(blankRow + 1, blankCol, blankRow, blankCol);
