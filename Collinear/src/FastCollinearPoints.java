@@ -38,33 +38,23 @@ public class FastCollinearPoints {
 
   private void findSegments() {
     this.lineSegments = new LinkedList<>();
-
     List<Point> mins = new LinkedList<>();
+
     Arrays.sort(this.points);
-    for (int i = 0; i < this.points.length - 3; i++) {
+    for (int i = 0; i < this.points.length - 3; i++) { // n-3
       Point[] sortesPoints = Arrays.copyOfRange(points, i + 1, points.length);
 
       Arrays.sort(sortesPoints, this.points[i].slopeOrder());
 
-      for (int k = 0; k < sortesPoints.length - 2;) {
+      Point[] usedPoints = Arrays.copyOfRange(points, 0, i);
+
+      Arrays.sort(usedPoints, this.points[i].slopeOrder());
+
+      for (int k = 0; k < sortesPoints.length - 2;) { // 1/2 (n- 2)
         boolean exists = false;
-        Iterator<Point> minIterator = mins.iterator();
-
-        while (minIterator.hasNext()) {
-          Point min = minIterator.next();
-
-          if (min.slopeOrder().compare(sortesPoints[k], points[i]) == 0) {
-            exists = true;
-            break;
-          }
-
-        }
-        if (exists) {
-          k++;
-          continue;
-        }
 
         int j = k + 1;
+
         while (j < sortesPoints.length && points[i].slopeOrder().compare(sortesPoints[k], sortesPoints[j]) == 0) {
           j++;
         }
@@ -74,26 +64,31 @@ public class FastCollinearPoints {
           continue;
         }
 
-        Point min = this.points[i];
-        Point max = this.points[i];
-        for (int m = k; m < j; m++) {
-          if (min.compareTo(sortesPoints[m]) > 0) {
-            min = sortesPoints[m];
+        int lo = 0;
+        int hi = usedPoints.length - 1;
+        while (lo <= hi) {
+          // Key is in a[lo..hi] or not present.
+          int mid = lo + (hi - lo) / 2;
+          int compared = points[i].slopeOrder().compare(sortesPoints[k], usedPoints[mid]);
+          if (compared < 0)
+            hi = mid - 1;
+          else if (compared > 0)
+            lo = mid + 1;
+          else {
+            exists = true;
+            break;
           }
 
-          if (max.compareTo(sortesPoints[m]) < 0) {
-            max = sortesPoints[m];
-          }
         }
 
-        LineSegment segment = new LineSegment(min, max);
-
+        if (exists) {
+          k = j;
+          continue;
+        }
+        LineSegment segment = new LineSegment(this.points[i], sortesPoints[j - 1]);
         this.lineSegments.add(segment);
-        mins.add(min);
-        minP = min;
-
+        mins.add(this.points[i]);
         k = j;
-
       }
 
     }
