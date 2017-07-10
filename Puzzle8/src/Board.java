@@ -7,9 +7,10 @@ public final class Board {
   private final int[] blocks;
   private final int dimension;
   private final List<Board> neighboars = new LinkedList<>();
-  private int hamming = -1; // initial values means not calculated yet
-  private int manhattan = -1;
+  private final int hamming;
+  private final int manhattan;
   private Board twin;
+  private int index0;
 
   /**
    * construct a board from an n-by-n array of blocks (where blocks[i][j] = block in row i, column j)
@@ -22,9 +23,35 @@ public final class Board {
     }
     this.dimension = blocks.length;
     this.blocks = new int[this.dimension * this.dimension];
+    int manhattanAccum = 0;
+    int hammingAccum = 0;
     for (int i = 0; i < this.blocks.length; i++) {
-      this.blocks[i] = blocks[i / this.dimension][i % this.dimension];
+
+      int iRow = this.getRow(i);
+      int iCol = this.getCol(i);
+
+      this.blocks[i] = blocks[iRow][iCol];
+
+      if (this.blocks[i] == 0) {
+        this.index0 = i;
+        continue;
+      }
+
+      int goalRow = this.getRow(this.blocks[i] - 1);
+      int goalCol = this.getCol(this.blocks[i] - 1);
+      // accumulate manhattan
+      int verticalDistance = Math.abs(iRow - goalRow);
+      int horizintalDistance = Math.abs(iCol - goalCol);
+      manhattanAccum += verticalDistance + horizintalDistance;
+
+      // accumulate hamming
+      if (i + 1 != this.blocks[i]) {
+        hammingAccum++;
+      }
     }
+    
+    this.manhattan = manhattanAccum;
+    this.hamming = hammingAccum;
 
   }
 
@@ -76,17 +103,6 @@ public final class Board {
    * @return
    */
   public int hamming() {
-    if (this.hamming > -1) { // already calculated
-      return this.hamming;
-    }
-    this.hamming = 0;
-
-    for (int i = 0; i < this.blocks.length - 1; i++) {
-      if (i + 1 != this.blocks[i]) {
-        this.hamming++;
-      }
-    }
-
     return this.hamming;
   }
 
@@ -96,28 +112,6 @@ public final class Board {
    * @return
    */
   public int manhattan() {
-    if (this.manhattan > -1) { // already calculated
-      return this.manhattan;
-    }
-    this.manhattan = 0;
-
-    for (int i = 0; i < this.blocks.length; i++) {
-      if (this.blocks[i] == 0) {
-        continue;
-      }
-
-      int iRow = this.getRow(i);
-      int iCol = this.getCol(i);
-
-      int goalRow = this.getRow(this.blocks[i] - 1);
-      int goalCol = this.getCol(this.blocks[i] - 1);
-
-      int verticalDistance = Math.abs(iRow - goalRow);
-      int horizintalDistance = Math.abs(iCol - goalCol);
-
-      this.manhattan += verticalDistance + horizintalDistance;
-    }
-
     return this.manhattan;
   }
 
@@ -206,15 +200,8 @@ public final class Board {
       return this.neighboars;
     }
 
-    int blankRow = -1;
-    int blankCol = -1;
-
-    int i = 0;
-    while (i < this.blocks.length && this.blocks[i] != 0) {
-      i++;
-    }
-    blankRow = this.getRow(i);
-    blankCol = this.getCol(i);
+    int blankRow = this.getRow(index0);
+    int blankCol = this.getCol(index0);
 
     this.embarkNeighbor(blankRow - 1, blankCol, blankRow, blankCol);
     this.embarkNeighbor(blankRow, blankCol - 1, blankRow, blankCol);

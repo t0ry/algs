@@ -44,7 +44,7 @@ public final class Solver {
 
     SearchNode searchNode = moveBlock(pq);
     SearchNode twinSearchNode = moveBlock(twinPQ);
-    
+
     while (!(searchNode.board.isGoal() || twinSearchNode.board.isGoal())) {
       searchNode = moveBlock(pq);
       twinSearchNode = moveBlock(twinPQ);
@@ -88,17 +88,18 @@ public final class Solver {
     private final Board board;
     private SearchNode previous;
     private int moves;
+    private final int manhattan;
 
     public SearchNode(Board board, SearchNode previous) {
       this.board = board;
       this.previous = previous;
       this.moves = this.previous.moves + 1;
-
+      this.manhattan = board.manhattan();
     }
 
     public SearchNode(Board board) {
       this.board = board;
-
+      this.manhattan = board.manhattan();
     }
 
     public boolean isNeighborAccptable(Board neighbor) {
@@ -111,10 +112,11 @@ public final class Solver {
 
     @Override
     public int compareTo(SearchNode searchNodeToCompare) {
-      if (this.board.manhattan() + this.moves < searchNodeToCompare.board.manhattan() + searchNodeToCompare.moves) {
+     
+      if (this.manhattan + this.moves < searchNodeToCompare.manhattan + searchNodeToCompare.moves) {
         return -1;
       }
-      if (this.board.manhattan() + this.moves > searchNodeToCompare.board.manhattan() + searchNodeToCompare.moves) {
+      if (this.manhattan + this.moves > searchNodeToCompare.manhattan + searchNodeToCompare.moves) {
         return 1;
       }
       return 0;
