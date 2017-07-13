@@ -1,10 +1,10 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-  private final int virtualTopIndex = 0;
-  private final  int virtualBottomIndex;
+  private static final int VIRTUAL_TOP_INDEX = 0;
+  private final int virtualBottomIndex;
 
-  private int[] sites;
+  private boolean[] sites;
   private final int initialSize;
   private int openedNumber = 0;
 
@@ -23,17 +23,12 @@ public class Percolation {
     this.initialSize = n;
 
     // two elements are added: virtual top with index 0
-    // and virtual bottom with index n*n + 1 this.sites = new int[n * n + 2];
-    this.sites = new int[this.initialSize * this.initialSize + 2];
+    // and virtual bottom with index n*n + 1 this.sites = new boolean[n * n + 2];
+    this.sites = new boolean[this.initialSize * this.initialSize + 2];
     this.virtualBottomIndex = this.sites.length - 1;
 
-    // init all but virtual top, virtual bottom as blocked: -100
-    for (int i = 1; i <= this.sites.length - 2; i++) {
-      this.sites[i] = -100;
-    }
-
     // open virtual bottom as connected to itself
-    this.sites[virtualBottomIndex] = virtualBottomIndex;
+    this.sites[virtualBottomIndex] = true;
 
     this.alg = new WeightedQuickUnionUF(this.sites.length);
 
@@ -41,7 +36,7 @@ public class Percolation {
 
   private void validateRowCol(int row, int col) {
     if (row <= 0 || col <= 0 || row > this.initialSize || col > this.initialSize) {
-      throw new IndexOutOfBoundsException("[row] and [col] must be >= 1 and <= n. n=" + this.initialSize);
+      throw new IllegalArgumentException("[row] and [col] must be >= 1 and <= n. n=" + this.initialSize);
     }
   }
 
@@ -64,12 +59,12 @@ public class Percolation {
 
     final int currentIndex = this.calcIndex(row, col);
 
-    this.sites[currentIndex] = -1; // open current site
+    this.sites[currentIndex] = true; // open current site
     this.openedNumber++;
 
     // automatically connect top row to virtual top and bottom row to bottom
     if (row == 1) {
-      this.alg.union(currentIndex, virtualTopIndex);
+      this.alg.union(currentIndex, VIRTUAL_TOP_INDEX);
     }
     if (row == this.initialSize) {
       this.alg.union(currentIndex, virtualBottomIndex);
@@ -112,7 +107,7 @@ public class Percolation {
   public boolean isOpen(int row, int col) {
     this.validateRowCol(row, col);
 
-    return this.sites[this.calcIndex(row, col)] > -100;
+    return this.sites[this.calcIndex(row, col)];
   }
 
   /**
@@ -125,7 +120,7 @@ public class Percolation {
   public boolean isFull(int row, int col) {
     this.validateRowCol(row, col);
 
-    return this.alg.connected(this.calcIndex(row, col), virtualTopIndex);
+    return this.alg.connected(this.calcIndex(row, col), VIRTUAL_TOP_INDEX);
   }
 
   /**
@@ -143,7 +138,7 @@ public class Percolation {
    * @return
    */
   public boolean percolates() {
-    return this.alg.connected(virtualTopIndex, virtualBottomIndex);
+    return this.alg.connected(VIRTUAL_TOP_INDEX, virtualBottomIndex);
   }
 
 }

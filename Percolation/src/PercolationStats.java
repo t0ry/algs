@@ -3,8 +3,9 @@ import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
 
 public class PercolationStats {
-  private final int initialSize;
-  private final double[] fractions;
+ private final double[] fractions;
+ private final double mean;
+ private final double stddev;
 
   /**
    * perform trials independent experiments on an n-by-n grid
@@ -17,7 +18,6 @@ public class PercolationStats {
       throw new IllegalArgumentException("[n] and [trails] must be > 0");
     }
 
-    this.initialSize = n;
     this.fractions = new double[trials];
 
     for (int i = 0; i < trials; i++) {
@@ -29,9 +29,12 @@ public class PercolationStats {
         percolation.open(row, col);
       } while (!percolation.percolates());
 
-      fractions[i] = (double) percolation.numberOfOpenSites() / (this.initialSize * this.initialSize);
+      fractions[i] = (double) percolation.numberOfOpenSites() / (n * n);
 
     }
+    
+    this.mean =  StdStats.mean(fractions);
+    this.stddev = StdStats.stddev(fractions);
   }
 
   /**
@@ -40,7 +43,7 @@ public class PercolationStats {
    * @return
    */
   public double mean() {
-    return StdStats.mean(fractions);
+    return this.mean;
   }
 
   /**
@@ -49,7 +52,7 @@ public class PercolationStats {
    * @return
    */
   public double stddev() {
-    return StdStats.stddev(fractions);
+    return this.stddev;
   }
 
   /**
@@ -58,7 +61,7 @@ public class PercolationStats {
    * @return
    */
   public double confidenceLo() {
-    return this.mean() - 1.96 * this.stddev() / Math.sqrt(this.fractions.length);
+    return this.mean - 1.96 * this.stddev / Math.sqrt(this.fractions.length);
   }
 
   /**
@@ -67,7 +70,7 @@ public class PercolationStats {
    * @return
    */
   public double confidenceHi() {
-    return this.mean() + 1.96 * this.stddev() / Math.sqrt(this.fractions.length);
+    return this.mean + 1.96 * this.stddev / Math.sqrt(this.fractions.length);
   }
 
   /**
