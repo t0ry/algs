@@ -150,7 +150,7 @@ public class Deque<Item> implements Iterable<Item> {
   private class Node<T> {
     private Node<T> prev;
     private Node<T> next;
-    private T item;
+    private final T item;
 
     public Node(T item) {
       this.item = item;

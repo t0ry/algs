@@ -4,7 +4,7 @@ import edu.princeton.cs.algs4.StdStats;
 
 public class PercolationStats {
   private final int initialSize;
-   private double[] fractions;
+  private final double[] fractions;
 
   /**
    * perform trials independent experiments on an n-by-n grid
@@ -22,7 +22,7 @@ public class PercolationStats {
 
     for (int i = 0; i < trials; i++) {
       Percolation percolation = new Percolation(n);
-      
+
       do {
         int row = StdRandom.uniform(1, n + 1);
         int col = StdRandom.uniform(1, n + 1);
