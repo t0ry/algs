@@ -12,8 +12,10 @@ public class KdTree {
 
   private class Node {
     private Point2D key; // sorted t;by key
-    private Comparator<Point2D> order;
-    private RectHV rect;
+    private final Comparator<Point2D> order;
+    private final RectHV rect;
+    private final RectHV leftRect;
+    private final RectHV rightRect;
 
     private Node left, right; // left and right subtrees
     private int size; // number of nodes in subtree
@@ -23,16 +25,18 @@ public class KdTree {
       this.order = order;
       this.size = size;
       this.rect = rect;
+      this.leftRect = getLeftRect();
+      this.rightRect = getRightRect();
     }
 
-   public RectHV getLeftRect() {
+    private RectHV getLeftRect() {
       if (this.order == Point2D.X_ORDER) {
         return new RectHV(rect.xmin(), rect.ymin(), key.x(), rect.ymax());
       }
       return new RectHV(rect.xmin(), rect.ymin(), rect.xmax(), key.y());
     }
 
-    public RectHV getRightRect() {
+    private RectHV getRightRect() {
       if (this.order == Point2D.X_ORDER) {
         return new RectHV(key.x(), rect.ymin(), rect.xmax(), rect.ymax());
       }
@@ -74,13 +78,12 @@ public class KdTree {
       return parent.key;
     }
 
-    int cmp = parent.order.compare(parent.key, key);
-    if (cmp < 0)
+    int cmp = parent.order.compare(key, parent.key);
+    if (cmp < 0) {
       return get(parent.left, key);
-    else if (cmp > 0)
+    } else {
       return get(parent.right, key);
-    else
-      return parent.key;
+    }
   }
 
   private Node put(Node parent, Point2D key, Comparator<Point2D> order, RectHV rect) {
@@ -95,9 +98,9 @@ public class KdTree {
     int cmp = parent.order.compare(key, parent.key);
 
     if (cmp < 0)
-      parent.left = put(parent.left, key, parent.getNextOrder(), parent.getLeftRect());
+      parent.left = put(parent.left, key, parent.getNextOrder(), parent.leftRect);
     else
-      parent.right = put(parent.right, key, parent.getNextOrder(), parent.getRightRect());
+      parent.right = put(parent.right, key, parent.getNextOrder(), parent.rightRect);
 
     parent.size = 1 + size(parent.left) + size(parent.right);
     return parent;
@@ -105,21 +108,25 @@ public class KdTree {
 
   private Node nearest(Node x, Point2D p, Node nearest) {
     // check if x is nearer than nearest
+    if (x == null) {
+      return nearest;
+    }
+
     if (nearest == null || p.distanceToOrder().compare(nearest.key, x.key) > 0) {
       nearest = x;
     }
 
-    if (x.order.compare(x.key, p) < 0) {
+    if (x.order.compare(p, x.key) < 0) {
       nearest = nearest(x.left, p, nearest);
 
-      if (x.rect.distanceSquaredTo(p) < p.distanceSquaredTo(nearest.key)) {
+      if (x.rightRect.distanceSquaredTo(p) < p.distanceSquaredTo(nearest.key)) {
         nearest = nearest(x.right, p, nearest);
       }
 
     } else {
       nearest = nearest(x.right, p, nearest);
 
-      if (x.rect.distanceSquaredTo(p) < p.distanceSquaredTo(nearest.key)) {
+      if (x.leftRect.distanceSquaredTo(p) < p.distanceSquaredTo(nearest.key)) {
         nearest = nearest(x.left, p, nearest);
       }
     }
@@ -142,14 +149,14 @@ public class KdTree {
       if (parent.key.x() > rect.xmin()) {
         range(parent.left, rect, pointsInRect);
       }
-      if (parent.key.x() < rect.xmax()) {
+      if (parent.key.x() <= rect.xmax()) {
         range(parent.right, rect, pointsInRect);
       }
     } else {
       if (parent.key.y() > rect.ymin()) {
         range(parent.left, rect, pointsInRect);
       }
-      if (parent.key.y() < rect.ymax()) {
+      if (parent.key.y() <= rect.ymax()) {
         range(parent.right, rect, pointsInRect);
       }
     }
@@ -157,19 +164,26 @@ public class KdTree {
     return pointsInRect;
   }
 
-  private void draw(Node x, Node parent) {
+  private void draw(Node x) {
     if (x == null) {
       return;
     }
 
     StdDraw.setPenColor(StdDraw.BLACK);
-    StdDraw.setPenRadius(0.03);
+    StdDraw.setPenRadius(0.01);
     x.key.draw();
 
     StdDraw.setPenColor(x.order == Point2D.X_ORDER ? StdDraw.RED : StdDraw.BLUE);
-    StdDraw.setPenRadius(0.01);
-    x.key.drawTo(new Point2D(x.getLeftRect().xmax(), x.getLeftRect().ymax()));
-    x.key.drawTo(new Point2D(x.getLeftRect().xmax(), x.getLeftRect().ymin()));
+    StdDraw.setPenRadius();
+    x.key.drawTo(new Point2D(x.leftRect.xmax(), x.leftRect.ymax()));
+    if (x.order == Point2D.X_ORDER) {
+      x.key.drawTo(new Point2D(x.leftRect.xmax(), x.leftRect.ymin()));
+    } else {
+      x.key.drawTo(new Point2D(x.leftRect.xmin(), x.leftRect.ymax()));
+    }
+
+    draw(x.left);
+    draw(x.right);
 
   }
 
@@ -199,7 +213,7 @@ public class KdTree {
   public void insert(Point2D p) {
     this.valideteArg(p);
 
-    put(root, p, Point2D.X_ORDER, new RectHV(0.0, 0.0, 1.0, 1.0));
+    root = put(root, p, Point2D.X_ORDER, new RectHV(0.0, 0.0, 1.0, 1.0));
   }
 
   /**
@@ -216,7 +230,7 @@ public class KdTree {
    * draw all points to standard draw
    */
   public void draw() {
-    draw(root, null);
+    draw(root);
   }
 
   /**
@@ -240,11 +254,11 @@ public class KdTree {
   public Point2D nearest(Point2D p) {
     this.valideteArg(p);
 
+    if (this.size() == 0) {
+      return null;
+    }
+
     return this.nearest(root, p, null).key;
-
-  }
-
-  public static void main(String[] args) {
 
   }
 }

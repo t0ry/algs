@@ -7,7 +7,7 @@ import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 
 public class PointSET {
-  protected final TreeSet<Point2D> set;
+  private final TreeSet<Point2D> set;
 
   /**
    * construct an empty set of points
@@ -80,7 +80,7 @@ public class PointSET {
    */
   public Iterable<Point2D> range(RectHV rect) {
     this.valideteArg(rect);
-    List<Point2D> result = new LinkedList<>();
+    final List<Point2D> result = new LinkedList<>();
 
     for (Point2D point : set) {
       if (rect.contains(point)) {
@@ -99,8 +99,12 @@ public class PointSET {
   public Point2D nearest(Point2D p) {
     this.valideteArg(p);
 
-    Point2D nearestPoint = null;
-    Iterator<Point2D> iterator = this.set.iterator();
+    if (this.size() == 0) {
+      return null;
+    }
+    
+    final Iterator<Point2D> iterator = this.set.iterator();
+    Point2D nearestPoint = iterator.next();
     while (iterator.hasNext()) {
       final Point2D current = iterator.next();
       if (p.distanceToOrder().compare(nearestPoint, current) > 0) {
@@ -111,7 +115,4 @@ public class PointSET {
     return nearestPoint;
   }
 
-  public static void main(String[] args) {
-
-  }
 }

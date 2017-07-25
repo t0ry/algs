@@ -26,10 +26,13 @@ public class KdTreeVisualizer {
                 StdOut.printf("%8.6f %8.6f\n", x, y);
                 Point2D p = new Point2D(x, y);
                 if (rect.contains(p)) {
-                    StdOut.printf("%8.6f %8.6f\n", x, y);
+                    StdOut.println("In tree " + kdtree.contains(p));
+                   
                     kdtree.insert(p);
                     StdDraw.clear();
                     kdtree.draw();
+                    
+                    kdtree.contains(p);
                     StdDraw.show();
                 }
             }
