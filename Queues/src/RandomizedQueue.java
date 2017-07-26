@@ -119,7 +119,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     private final Item[] randomizedQueue;
 
     public QueueIterator() {
-      this.randomizedQueue = (Item[]) Arrays.copyOf(queue, size()); 
+      this.randomizedQueue = Arrays.copyOf(queue, size()); 
       StdRandom.shuffle(this.randomizedQueue);
     }
 
