@@ -9,6 +9,7 @@ public class Percolation {
   private int openedNumber = 0;
 
   private final WeightedQuickUnionUF alg;
+  private final WeightedQuickUnionUF algFull;
 
   /**
    * Constructor create n-by-n grid, with all sites blocked
@@ -32,6 +33,7 @@ public class Percolation {
     // this.sites[VIRTUAL_TOP_INDEX] = true;
 
     this.alg = new WeightedQuickUnionUF(this.sites.length);
+    this.algFull = new WeightedQuickUnionUF(this.sites.length - 1);
 
   }
 
@@ -66,6 +68,7 @@ public class Percolation {
     // automatically connect top row to virtual top and bottom row to bottom
     if (row == 1) {
       this.alg.union(currentIndex, VIRTUAL_TOP_INDEX);
+      this.algFull.union(currentIndex, VIRTUAL_TOP_INDEX);
     }
     if (row == this.initialSize) {
       this.alg.union(currentIndex, virtualBottomIndex);
@@ -77,25 +80,44 @@ public class Percolation {
     final int rightIndex = this.calcIndex(row, col + 1);
 
     // connect top site if exists and open
-    if (row > 1 && isOpen(row - 1, col) && !this.alg.connected(topIndex, currentIndex)) {
-      this.alg.union(topIndex, currentIndex);
+    if (row > 1 && isOpen(row - 1, col)) {
+      if (!this.alg.connected(topIndex, currentIndex)) {
+        this.alg.union(topIndex, currentIndex);
+      }
+      if (!this.algFull.connected(topIndex, currentIndex)) {
+        this.algFull.union(topIndex, currentIndex);
+      }
     }
 
     // connect left site if exists and open
-    if (col > 1 && isOpen(row, col - 1) && !this.alg.connected(leftIndex, currentIndex)) {
-      this.alg.union(leftIndex, currentIndex);
+    if (col > 1 && isOpen(row, col - 1)) {
+      if (!this.alg.connected(leftIndex, currentIndex)) {
+        this.alg.union(leftIndex, currentIndex);
+      }
+      if (!this.algFull.connected(leftIndex, currentIndex)) {
+        this.algFull.union(leftIndex, currentIndex);
+      }
     }
 
     // connect right site if exists and open
-    if (col < initialSize && isOpen(row, col + 1) && !this.alg.connected(rightIndex, currentIndex)) {
-      this.alg.union(rightIndex, currentIndex);
+    if (col < initialSize && isOpen(row, col + 1)) {
+      if (!this.alg.connected(rightIndex, currentIndex)) {
+        this.alg.union(rightIndex, currentIndex);
+      }
+      if (!this.algFull.connected(rightIndex, currentIndex)) {
+        this.algFull.union(rightIndex, currentIndex);
+      }
     }
-    
+
     // connect bottom site if exists and open
-    if (row < this.initialSize && isOpen(row + 1, col) && !this.alg.connected(bottomIndex, currentIndex)) {
-      this.alg.union(bottomIndex, currentIndex);
+    if (row < this.initialSize && isOpen(row + 1, col)) {
+      if (!this.alg.connected(bottomIndex, currentIndex)) {
+        this.alg.union(bottomIndex, currentIndex);
+      }
+      if (!this.algFull.connected(bottomIndex, currentIndex)) {
+        this.algFull.union(bottomIndex, currentIndex);
+      }
     }
-    
 
   }
 
@@ -121,10 +143,8 @@ public class Percolation {
    */
   public boolean isFull(int row, int col) {
     this.validateRowCol(row, col);
-    if (!isOpen (row, col)) {
-      return false;
-    }
-    return this.alg.connected(this.calcIndex(row, col), VIRTUAL_TOP_INDEX);
+
+    return isOpen(row, col) && this.algFull.connected(this.calcIndex(row, col), VIRTUAL_TOP_INDEX);
   }
 
   /**
